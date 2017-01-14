@@ -3,6 +3,7 @@ package com.example.android.interact;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -36,6 +37,8 @@ public class MainActivity extends AppCompatActivity {
     private CallbackManager callbackManager;
     private AccessTokenTracker accessTokenTracker;
     private AccessToken accessToken;
+    private String userId;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,7 +56,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onSuccess(LoginResult loginResult) {
                 Log.d("FACEBOOK MANAGER", "SUCCESS");
-
+                userId = loginResult.getAccessToken().getUserId();
+//                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://facebook.com/" + userId));
+//                startActivity(intent);
             }
 
             @Override
@@ -81,7 +86,8 @@ public class MainActivity extends AppCompatActivity {
 
     public void facebookLoginHandle(View v) {
         LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("public_profile"));
-        //LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("user_status"));
+        LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("user_status"));
+
     }
 
     @Override
