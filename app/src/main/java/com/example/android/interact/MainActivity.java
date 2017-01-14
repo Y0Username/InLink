@@ -11,6 +11,8 @@ import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 
+import com.facebook.FacebookSdk;
+
 public class MainActivity extends AppCompatActivity {
 
     private ImageView qrCode;
