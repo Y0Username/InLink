@@ -82,7 +82,7 @@ public class FbCookieCapActivity extends AppCompatActivity {
             public void onClick(View view) {
                 Snackbar.make(view, "Opening test webview", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
-                final String fbFriendUrl = "https://www.facebook.com/anmol.ahuja?m2w";
+                final String fbFriendUrl = "https://www.facebook.com/anmol.ahuja";
                 final Activity activity = FbCookieCapActivity.this;
 
                 final WebView wv = new WebView(activity);
