@@ -13,27 +13,4 @@
     tools:context="com.example.android.interact.FbCookieCapActivity"
     tools:showIn="@layout/activity_fb_cookie_cap">
 
-    <Button
-        android:text="Test"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginLeft="150dp"
-        android:layout_marginStart="150dp"
-        android:layout_marginTop="173dp"
-        android:id="@+id/button_test_custom" />
-
-    <Button
-        android:text="Login"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginLeft="133dp"
-        android:layout_marginStart="133dp"
-        android:layout_marginTop="87dp"
-        android:id="@+id/button_login_custom" />
 </RelativeLayout>

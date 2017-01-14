@@ -1,16 +1,27 @@
 package com.example.android.interact;
 
+import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Picture;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.ButtonBarLayout;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.TextureView;
 import android.view.View;
+import android.webkit.WebChromeClient;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.facebook.AccessToken;
 import com.facebook.AccessTokenTracker;
@@ -23,12 +34,15 @@ import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
+import com.google.zxing.Result;
 import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 
 import com.facebook.FacebookSdk;
 
 import java.util.Arrays;
+
+import me.dm7.barcodescanner.zxing.ZXingScannerView;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -38,6 +52,8 @@ public class MainActivity extends AppCompatActivity {
     private AccessTokenTracker accessTokenTracker;
     private AccessToken accessToken;
     private String userId;
+    private String usr;
+    private ZXingScannerView sView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,11 +62,12 @@ public class MainActivity extends AppCompatActivity {
         // Track App Installs and App Opens
         FacebookSdk.sdkInitialize(getApplicationContext());
 
-        Intent intent = new Intent(this, FbCookieCapActivity.class);
-        startActivity(intent);
-
         setContentView(R.layout.activity_main);
+        //fbLogin here.
+        qrCode = (ImageView) findViewById(R.id.qr_code);
+    }
 
+    public void fbLogin(View v) {
         AppEventsLogger.activateApp(this);
         callbackManager = CallbackManager.Factory.create();
 
@@ -61,13 +78,7 @@ public class MainActivity extends AppCompatActivity {
             public void onSuccess(LoginResult loginResult) {
                 Log.d("FACEBOOK MANAGER", "SUCCESS");
                 userId = loginResult.getAccessToken().getUserId();
-//                try {
-//                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("fb://facewebmodal/f?href=https://www.facebook.com/" + userId));
-//                    startActivity(intent);
-//                } catch( Exception e ) {
-//                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.facebook.com/" + userId));
-//                    startActivity(intent);
-//                }
+                new QRTask().execute("https://www.facebook.com/" + userId);
             }
 
             @Override
@@ -88,27 +99,49 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
-        qrCode = (ImageView) findViewById(R.id.qr_code);
-        new QRTask().execute("MyQRCode");
+        LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("public_profile"));
+        //LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("user_status"));
+
     }
 
+    public void handleQR(View v) {
+        try {
+            Intent intent = new Intent("com.google.zxing.client.android.SCAN");
+            intent.putExtra("SCAN_MODE", "QR_CODE_MODE");
+            startActivityForResult(intent, 0);
+        } catch (ActivityNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
 
-    public void facebookLoginHandle(View v) {
-        LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("public_profile"));
-        LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("user_status"));
-
+    @Override
+    protected void onPause() {
+        super.onPause();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        accessTokenTracker.stopTracking();
+        if(accessTokenTracker != null)
+            accessTokenTracker.stopTracking();
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        callbackManager.onActivityResult(requestCode, resultCode, data);
+        if(callbackManager != null) {
+            callbackManager.onActivityResult(requestCode, resultCode, data);
+        }
+        if (requestCode == 0) {
+            if (resultCode == RESULT_OK) {
+                String contents = data.getStringExtra("SCAN_RESULT");
+                String format = data.getStringExtra("SCAN_RESULT_FORMAT");
+                Intent intent = new Intent(MainActivity.this, FbCookieCapActivity.class);
+                intent.putExtra("URL", contents);
+                startActivity(intent);
+            }
+        }
+
     }
 
     class QRTask extends AsyncTask<String, String, Bitmap> {
@@ -135,7 +168,7 @@ public class MainActivity extends AppCompatActivity {
     private Bitmap encodeAsBitmap(String qr) throws WriterException {
         BitMatrix result;
         try {
-            result = new MultiFormatWriter().encode(qr, BarcodeFormat.QR_CODE, 500, 500, null);
+            result = new MultiFormatWriter().encode(qr, BarcodeFormat.QR_CODE, 1000, 1000, null);
         } catch (IllegalArgumentException e) {
             return null;
         }
@@ -151,7 +184,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         Bitmap bitmap = Bitmap.createBitmap(w,h, Bitmap.Config.ARGB_8888);
-        bitmap.setPixels(pixels,0,500,0,0,w,h);
+        bitmap.setPixels(pixels,0,1000,0,0,w,h);
         return bitmap;
     }
 }

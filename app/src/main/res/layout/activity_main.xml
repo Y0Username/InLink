@@ -11,6 +11,7 @@
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
         android:id="@+id/qr_code"/>
 
     <com.facebook.login.widget.LoginButton
@@ -20,6 +21,29 @@
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="30dp"
         android:layout_marginBottom="30dp"
-        android:onClick="facebookLoginHandle"/>
+        android:visibility="invisible"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/buttonTwo"
+        android:layout_gravity="center_horizontal"
+        android:text="Scan"
+        android:onClick="handleQR"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/buttonOne"
+        android:layout_gravity="center_horizontal"
+        android:text="generate qr code"
+        android:onClick="fbLogin"/>
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/scan_text"
+        android:layout_gravity="center_horizontal"/>
 
 </LinearLayout>
