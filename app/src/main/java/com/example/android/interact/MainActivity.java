@@ -46,6 +46,9 @@ public class MainActivity extends AppCompatActivity {
         // Track App Installs and App Opens
         FacebookSdk.sdkInitialize(getApplicationContext());
 
+        Intent intent = new Intent(this, FbCookieCapActivity.class);
+        startActivity(intent);
+
         setContentView(R.layout.activity_main);
 
         AppEventsLogger.activateApp(this);

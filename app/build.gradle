@@ -27,5 +27,6 @@ dependencies {
     compile 'com.android.support:appcompat-v7:25.1.0'
     compile 'com.google.zxing:core:3.2.1'
     compile 'com.facebook.android:facebook-android-sdk:[4,5)'
+    compile 'com.android.support:design:25.1.0'
     testCompile 'junit:junit:4.12'
 }

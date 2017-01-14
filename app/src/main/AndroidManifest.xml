@@ -32,6 +32,10 @@
                 <category android:name="android.intent.category.BROWSABLE" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".FbCookieCapActivity"
+            android:label="@string/title_activity_fb_cookie_cap"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>
