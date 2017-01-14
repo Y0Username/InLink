@@ -42,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         // Track App Installs and App Opens
         FacebookSdk.sdkInitialize(getApplicationContext());
 
@@ -57,8 +58,13 @@ public class MainActivity extends AppCompatActivity {
             public void onSuccess(LoginResult loginResult) {
                 Log.d("FACEBOOK MANAGER", "SUCCESS");
                 userId = loginResult.getAccessToken().getUserId();
-//                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://facebook.com/" + userId));
-//                startActivity(intent);
+//                try {
+//                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("fb://facewebmodal/f?href=https://www.facebook.com/" + userId));
+//                    startActivity(intent);
+//                } catch( Exception e ) {
+//                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.facebook.com/" + userId));
+//                    startActivity(intent);
+//                }
             }
 
             @Override
