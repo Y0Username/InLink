@@ -3,5 +3,5 @@
 
     <!-- Facebook -->
     <string name="facebook_app_id">1179761925478164</string>
-    <string name="fb_login_protocol_scheme">fbAPP_ID</string>
+    <string name="fb_login_protocol_scheme">fb1179761925478164</string>
 </resources>
