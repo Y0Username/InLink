@@ -46,4 +46,10 @@
         android:id="@+id/scan_text"
         android:layout_gravity="center_horizontal"/>
 
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/textout"
+        android:layout_gravity="center_horizontal"/>
+
 </LinearLayout>

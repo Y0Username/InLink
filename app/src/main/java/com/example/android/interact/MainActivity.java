@@ -19,6 +19,7 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -40,11 +41,22 @@ import com.google.zxing.common.BitMatrix;
 
 import com.facebook.FacebookSdk;
 
+import android.nfc.NfcAdapter;
+import android.nfc.NdefMessage;
+import android.nfc.NdefRecord;
+import android.nfc.NfcAdapter.CreateNdefMessageCallback;
+import android.nfc.NfcAdapter.OnNdefPushCompleteCallback;
+import android.nfc.NfcEvent;
+import android.app.PendingIntent;
+import android.nfc.Tag;
+import android.os.Parcelable;
+
 import java.util.Arrays;
 
 import me.dm7.barcodescanner.zxing.ZXingScannerView;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements
+        CreateNdefMessageCallback, OnNdefPushCompleteCallback {
 
     private ImageView qrCode;
     private String qrString;
@@ -54,6 +66,12 @@ public class MainActivity extends AppCompatActivity {
     private String userId;
     private String usr;
     private ZXingScannerView sView;
+
+    private NfcAdapter nfcAdapter;
+    private PendingIntent mPendingIntent;
+
+    private TextView textInfo;
+    private EditText textOut;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,7 +83,52 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         //fbLogin here.
         qrCode = (ImageView) findViewById(R.id.qr_code);
+
+        textInfo = (TextView)findViewById(R.id.info);
+        textOut = (EditText)findViewById(R.id.textout);
+
+        nfcAdapter = NfcAdapter.getDefaultAdapter(this);
+        if(nfcAdapter==null){
+            Toast.makeText(MainActivity.this,
+                    "nfcAdapter==null, no NFC adapter exists",
+                    Toast.LENGTH_LONG).show();
+        }else{
+            Toast.makeText(MainActivity.this,
+                    "Set Callback(s)",
+                    Toast.LENGTH_LONG).show();
+            nfcAdapter.setNdefPushMessageCallback(this, this);
+            nfcAdapter.setOnNdefPushCompleteCallback(this, this);
+        }
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Intent intent = getIntent();
+        String action = intent.getAction();
+        if(action.equals(NfcAdapter.ACTION_NDEF_DISCOVERED)){
+            Parcelable[] parcelables =
+                    intent.getParcelableArrayExtra(
+                            NfcAdapter.EXTRA_NDEF_MESSAGES);
+            NdefMessage inNdefMessage = (NdefMessage)parcelables[0];
+            NdefRecord[] inNdefRecords = inNdefMessage.getRecords();
+            NdefRecord NdefRecord_0 = inNdefRecords[0];
+            String inMsg = new String(NdefRecord_0.getPayload());
+            textInfo.setText(inMsg);
+        }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent){
+        setIntent(intent);
+    }
+
+    private void getTagInfo(Intent intent) {
+        Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
+
+
+    }
+
 
     public void fbLogin(View v) {
         AppEventsLogger.activateApp(this);
@@ -117,6 +180,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
+
+        if (nfcAdapter != null) {
+            nfcAdapter.disableForegroundDispatch(this);
+        }
     }
 
     @Override
@@ -168,6 +235,38 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         }
+
+    }
+
+    @Override
+    public NdefMessage createNdefMessage(NfcEvent event) {
+
+        String stringOut = textOut.getText().toString();
+        byte[] bytesOut = stringOut.getBytes();
+
+        NdefRecord ndefRecordOut = new NdefRecord(
+                NdefRecord.TNF_MIME_MEDIA,
+                "text/plain".getBytes(),
+                new byte[] {},
+                bytesOut);
+
+        NdefMessage ndefMessageout = new NdefMessage(ndefRecordOut);
+        return ndefMessageout;
+    }
+
+    @Override
+    public void onNdefPushComplete(NfcEvent event) {
+
+        final String eventString = "onNdefPushComplete\n" + event.toString();
+        runOnUiThread(new Runnable() {
+
+            @Override
+            public void run() {
+                Toast.makeText(getApplicationContext(),
+                        eventString,
+                        Toast.LENGTH_LONG).show();
+            }
+        });
 
     }
 
