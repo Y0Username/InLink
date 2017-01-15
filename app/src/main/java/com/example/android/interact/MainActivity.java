@@ -76,6 +76,11 @@ import android.app.PendingIntent;
 import android.nfc.Tag;
 import android.os.Parcelable;
 
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -289,7 +294,7 @@ public class MainActivity extends AppCompatActivity implements
         progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
         progress.show();
 
-        JSONObject obj = new JSONObject();
+        final JSONObject obj = new JSONObject();
         try {
             obj.put("password", "this_is_lame_security1234!");
             obj.put("to_fuid", fbuid);
@@ -297,12 +302,34 @@ public class MainActivity extends AppCompatActivity implements
             obj.put("to_name", name);
             obj.put("from_fuid", fromUid);
             // obj.put("to_fuid", fbuid);
+            Handler mHandler = new Handler(Looper.getMainLooper()) {
+                @Override
+                public void handleMessage(Message inputMessage) {
+                    progress.dismiss();
+                }
+            };
+            Thread t = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        URL url = new URL(getString(R.string.inlink_server) + "/put_new_connection");
+                        URLConnection con = url.openConnection();
+                        OutputStreamWriter wr= new OutputStreamWriter(con.getOutputStream());
+                        wr.write(obj.toString());
+                    } catch(MalformedURLException e) {
+                    }catch(IOException e) {
+                    } finally {
+                        progress.dismiss();
+                    }
+                }
+            });
         } catch (JSONException e) {
             progress.dismiss();
             Toast.makeText(this, "Failed to create json object", Toast.LENGTH_LONG).show();
             return;
         }
 
+        /*
         JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.GET, getString(R.string.inlink_server) + "/put_new_connection", obj, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
@@ -314,6 +341,8 @@ public class MainActivity extends AppCompatActivity implements
                 Log.d("Server link update", "Failed to update server");
             }
         });
+        RequestQueue queue = Volley.newRequestQueue(this);
+        queue.add(jsObjRequest);*/
 
         progress.dismiss();
     }
@@ -618,7 +647,7 @@ public class MainActivity extends AppCompatActivity implements
                 }
             };
 
-            Handler handler=new Handler();
+            Handler handler = new Handler();
             Runnable r=new Runnable() {
                 public void run() {
                     JSONObject obj = new JSONObject();
