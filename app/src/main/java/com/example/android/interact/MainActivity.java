@@ -262,6 +262,7 @@ public class MainActivity extends AppCompatActivity implements
             intent1.putExtra(FbCookieCapActivity.KEY_JS, fbFriendJS());
             startActivity(intent1);
         } else {
+            Log.d("Received contact info", "Generating private number");
             createTemporaryNumberAndSave("5", to_uid, to_num, to_name);
         }
     }
@@ -288,8 +289,8 @@ public class MainActivity extends AppCompatActivity implements
     protected void updateLinkOnServer(final String fromPhone, final String fromName, final String fromUid) {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
         String str = sharedPreferences.getString("FBURL", "https://www.facebook.com/");
-        final String name = sharedPreferences.getString("phone", "");
-        final String phone = sharedPreferences.getString("name", "");
+        final String name = sharedPreferences.getString("name", "");
+        final String phone = sharedPreferences.getString("phone", "");
         final String fbuid = sharedPreferences.getString("fbuid", "");
         if (name.equals("") || phone.equals("") || fbuid.equals("")) {
             Log.e("Pending friend loader", "Couldn't load user name, phone and/or fb uid. Fuck.");
@@ -348,12 +349,12 @@ public class MainActivity extends AppCompatActivity implements
                 userId = loginResult.getAccessToken().getUserId();
                 SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
                 SharedPreferences.Editor sht = sharedPreferences.edit();
-                String rt = "https://www.facebook.com/" + userId + "\n" + phone + "\n" + name + "\n" + userId + "\n" + (tempBox.isChecked() ? "true" : "false") /*is temp contact*/;
+                String rt = "https://www.facebook.com/" + userId + "\n" + phone + "\n" + name + "\n" + userId/*is temp contact*/;
                 sht.putString("fbuid", userId);
                 sht.putString("FBURL", rt);
                 sht.apply();
 //                Log.v("hey", rt);
-                new QRTask().execute(rt);
+                new QRTask().execute(rt + "\n" + (tempBox.isChecked() ? "true" : "false"));
             }
 
             @Override
@@ -454,7 +455,7 @@ public class MainActivity extends AppCompatActivity implements
     public NdefMessage createNdefMessage(NfcEvent event) {
 
         SharedPreferences sh = PreferenceManager.getDefaultSharedPreferences(this);
-        String testMessage = sh.getString("FBURL", "https://www.facebook.com/");
+        String testMessage = sh.getString("FBURL", "https://www.facebook.com/") + "\n" + (tempBox.isChecked() ? "true" : "false");
 
         NdefMessage msg = new NdefMessage(
                 new NdefRecord[]{NdefRecord.createMime(
@@ -544,6 +545,7 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     protected void createTemporaryNumberAndSave(final String durationInDays, final String to_uid, final String to_num, final String to_name) {
+        Log.d("asas", "Creating temporary number...");
         final ProgressDialog progress = new ProgressDialog(this);
         progress.setTitle("Loading");
         progress.setMessage("Wait while loading...");
@@ -553,7 +555,7 @@ public class MainActivity extends AppCompatActivity implements
         JSONObject obj = new JSONObject();
         try {
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-            final String phone = sharedPreferences.getString("name", "");
+            final String phone = sharedPreferences.getString("phone", "");
             final String fbuid = sharedPreferences.getString("fbuid", "");
             if (phone.equals("") || fbuid.equals("")) {
                 Log.e("Pending friend loader", "Couldn't load user name, phone or fb uid. Fuck.");
@@ -574,11 +576,13 @@ public class MainActivity extends AppCompatActivity implements
 
         final Handler handler = new Handler();
 
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.GET, getString(R.string.inlink_server) + "/create_inlink_number", obj, new Response.Listener<JSONObject>() {
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.PUT, getString(R.string.inlink_server) + "/create_inlink_number", obj, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
+
                 try {
                     final String tempPhone = response.getString("temp_number");
+                    Log.d("Received  temp nnnumner", tempPhone);
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
@@ -600,8 +604,6 @@ public class MainActivity extends AppCompatActivity implements
         });
         RequestQueue queue = Volley.newRequestQueue(this);
         queue.add(jsObjRequest);
-
-        progress.dismiss();
     }
 
     private class PendingFriendLoader {
