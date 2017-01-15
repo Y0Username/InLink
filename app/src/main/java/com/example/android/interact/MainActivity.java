@@ -243,6 +243,29 @@ public class MainActivity extends AppCompatActivity implements
 
     }
 
+    protected void receivedLink(final String rt) {
+        String[] ab = rt.split("\n");
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor sh = sharedPreferences.edit();
+        sh.putString("othername", ab[2]);
+        sh.putString("otherphone", ab[1]);
+        sh.apply();
+        boolean isPrivate = ab[4].equals("true");
+        final String to_num = ab[1];
+        final String to_name = ab[2];
+        final String to_uid = ab[3];
+        if(!isPrivate) {
+            contact(ab[1], ab[2]);
+            updateLinkOnServer(ab[1], ab[2], ab[3]);
+            Intent intent1 = new Intent(MainActivity.this, FbCookieCapActivity.class);
+            intent1.putExtra(FbCookieCapActivity.KEY_URL, ab[0]);
+            intent1.putExtra(FbCookieCapActivity.KEY_JS, fbFriendJS());
+            startActivity(intent1);
+        } else {
+            createTemporaryNumberAndSave("5", to_uid, to_num, to_name);
+        }
+    }
+
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
@@ -257,18 +280,8 @@ public class MainActivity extends AppCompatActivity implements
             NdefMessage msg = (NdefMessage) rawMsgs[0];
             // record 0 contains the MIME type, record 1 is the AAR, if present
             Log.d("In beamqew", new String(msg.getRecords()[0].getPayload()));
-            String[] ab = new String(msg.getRecords()[0].getPayload()).split("\n");
-            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-            SharedPreferences.Editor sh = sharedPreferences.edit();
-            sh.putString("othername", ab[2]);
-            sh.putString("otherphone", ab[1]);
-            sh.apply();
-            contact(ab[1], ab[2]);
-            updateLinkOnServer(ab[1], ab[2], ab[3]);
-            Intent intent1 = new Intent(MainActivity.this, FbCookieCapActivity.class);
-            intent1.putExtra(FbCookieCapActivity.KEY_URL, ab[0]);
-            intent1.putExtra(FbCookieCapActivity.KEY_JS, fbFriendJS());
-            startActivity(intent1);
+            final String rt = new String(msg.getRecords()[0].getPayload());
+            receivedLink(rt);
         }
     }
 
@@ -335,7 +348,7 @@ public class MainActivity extends AppCompatActivity implements
                 userId = loginResult.getAccessToken().getUserId();
                 SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
                 SharedPreferences.Editor sht = sharedPreferences.edit();
-                String rt = "https://www.facebook.com/" + userId + "\n" + phone + "\n" + name + "\n" + userId + "\n" + "false" /*is temp contact*/;
+                String rt = "https://www.facebook.com/" + userId + "\n" + phone + "\n" + name + "\n" + userId + "\n" + (tempBox.isChecked() ? "true" : "false") /*is temp contact*/;
                 sht.putString("fbuid", userId);
                 sht.putString("FBURL", rt);
                 sht.apply();
@@ -403,17 +416,7 @@ public class MainActivity extends AppCompatActivity implements
                 String contents = data.getStringExtra("SCAN_RESULT");
                 String format = data.getStringExtra("SCAN_RESULT_FORMAT");
                 Intent intent = new Intent(MainActivity.this, FbCookieCapActivity.class);
-                String[] ab = contents.split("\n");
-                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-                SharedPreferences.Editor sh = sharedPreferences.edit();
-                sh.putString("othername", ab[2]);
-                sh.putString("otherphone", ab[1]);
-                sh.apply();
-                contact(ab[1], ab[2]);
-                updateLinkOnServer(ab[1], ab[2], ab[3]);
-                intent.putExtra(FbCookieCapActivity.KEY_URL, ab[0]);
-                intent.putExtra(FbCookieCapActivity.KEY_JS, fbFriendJS());
-                startActivity(intent);
+                receivedLink(contents);
             }
         }
     }
@@ -652,7 +655,7 @@ public class MainActivity extends AppCompatActivity implements
                         public void onResponse(JSONObject response) {
                             progress.dismiss();
                             try {
-                                if(response.has("to_fuid")) {
+                                if(response.has("to_fuid") && !response.get("to_fuid").equals("")) {
                                     final String fbUrl = "https://m.facebook.com/" + response.getString("to_fuid");
                                     Intent intent = new Intent(PendingFriendLoader.this.activity, FbCookieCapActivity.class);
                                     intent.putExtra(FbCookieCapActivity.KEY_URL, fbUrl);
