@@ -650,22 +650,23 @@ public class MainActivity extends AppCompatActivity implements
                                 contact(response.getString("to_phone"), response.getString("to_name"));
                             } catch(JSONException e) {
                             } finally {
+                                progress.dismiss();
                             }
                         }
                     }, new Response.ErrorListener() {
                         @Override
                         public void onErrorResponse(VolleyError error) {
-                            if(attempt < 3)
-                                load(attempt+1);
-                            else {
+                            //if(attempt < 3)
+                            //    load(attempt+1);
+                            // else {
                                 progress.dismiss();
-                                Toast.makeText(PendingFriendLoader.this.activity, "Failed to get conatct", Toast.LENGTH_LONG);
-                            }
+                            //    Toast.makeText(PendingFriendLoader.this.activity, "Failed to get conatct", Toast.LENGTH_LONG);
+                            //}
                         }
                     });
                 }
             };
-            handler.postDelayed(r, 3777);
+            handler.postDelayed(r, 7777);
         }
     }
 }
