@@ -28,68 +28,52 @@ import java.net.URL;
 
 public class FbCookieCapActivity extends AppCompatActivity {
 
+    static final String KEY_URL = "extras_key_url";
+    static final String KEY_JS = "extras_key_js";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         //getActionBar().setDisplayHomeAsUpEnabled(true);
+        final String webUrl = getIntent().getStringExtra(FbCookieCapActivity.KEY_URL);
+        final String execJs = getIntent().getStringExtra(FbCookieCapActivity.KEY_JS);
 
         // TODO: Do in application instance
         android.webkit.CookieSyncManager.createInstance(getApplicationContext());
         android.webkit.CookieManager.getInstance().setAcceptCookie(true);
         WebkitCookieManagerProxy coreCookieManager = new WebkitCookieManagerProxy(null, java.net.CookiePolicy.ACCEPT_ALL);
         java.net.CookieHandler.setDefault(coreCookieManager);
-                final String fbFriendUrl = getIntent().getStringExtra("URL");
-                final Activity activity = FbCookieCapActivity.this;
+        final Activity activity = FbCookieCapActivity.this;
 
-                final WebView wv = new WebView(activity);
-                wv.setWebViewClient(new WebViewClient());
-                wv.getSettings().setJavaScriptEnabled(true);
-                wv.setWebChromeClient(new WebChromeClient());
-                wv.setPictureListener(new WebView.PictureListener() {
+        final WebView wv = new WebView(activity);
+        wv.setWebViewClient(new WebViewClient());
+        wv.getSettings().setJavaScriptEnabled(true);
+        wv.setWebChromeClient(new WebChromeClient());
+        wv.setPictureListener(new WebView.PictureListener() {
 
-                    @Override
-                    public void onNewPicture(final WebView view, final Picture picture) {
-                        if (view.getProgress() == 100 && view.getContentHeight() > 0) {
-                            view.setPictureListener(new WebView.PictureListener() {
-                                @Override
-                                public void onNewPicture(final WebView view, final Picture picture) {
-                                    if (view.getProgress() == 100 && view.getContentHeight() > 0) {
-                                        view.setPictureListener(null);
-                                        Toast.makeText(activity, "Friend request sent", Toast.LENGTH_SHORT).show();
-                                        finish();
-                                    }
-                                }
-                            });
-                            // not really needed, never loads desktop version of fb by default, though user might switch to it
-                            String desktopJs = "javascript:";
-                            desktopJs += "var aTags = document.getElementsByTagName(\"button\");";
-                            desktopJs += "var searchText = \"Add Friend\";";
-                            desktopJs += "for (var i = 0; i < aTags.length; i++) {";
-                            desktopJs += "if (aTags[i].textContent == searchText) {";
-                            desktopJs += "aTags[i].click(); } }";
-                            wv.loadUrl(desktopJs);
-
-                            String js = "javascript:";
-                            js += "var h = document.getElementsByTagName('html')[0].innerHTML;";
-                            js += "var elem = document.createElement('textarea');";
-                            js += "elem.innerHTML = h;";
-                            js += "h = elem.value;";
-                            js += "var start = h.indexOf('/a/mobile/friends/profile_add_friend');";
-                            js += "if(start != -1) {";
-                            js += "h = h.substring(start);";
-                            js += "end = h.indexOf(\"\\\"\");";
-                            js += "fburl = 'https://m.facebook.com/' + h.substring(0, end);";
-                            // js += "window.alert(fburl);";
-                            js += "window.location = fburl;}";
-                            wv.loadUrl(js);
+            @Override
+            public void onNewPicture(final WebView view, final Picture picture) {
+                if (view.getProgress() == 100 && view.getContentHeight() > 0) {
+                    view.setPictureListener(new WebView.PictureListener() {
+                        @Override
+                        public void onNewPicture(final WebView view, final Picture picture) {
+                            if (view.getProgress() == 100 && view.getContentHeight() > 0) {
+                                view.setPictureListener(null);
+                                // Toast.makeText(activity, "Friend request sent", Toast.LENGTH_SHORT).show();
+                                // TODO: detect if it actually went okay, show something!
+                                finish();
+                            }
                         }
-                    }
-                });
+                    });
 
-                wv.loadUrl(fbFriendUrl);
-                setContentView(wv);
+                    wv.loadUrl(execJs);
+                }
             }
+        });
+
+        wv.loadUrl(webUrl);
+        setContentView(wv);
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

@@ -137,7 +137,34 @@ public class MainActivity extends AppCompatActivity {
                 String contents = data.getStringExtra("SCAN_RESULT");
                 String format = data.getStringExtra("SCAN_RESULT_FORMAT");
                 Intent intent = new Intent(MainActivity.this, FbCookieCapActivity.class);
-                intent.putExtra("URL", contents);
+
+                String js = "javascript:";
+                // not really needed, never loads desktop version of fb by default, though user might switch to it
+                js += "try {";
+                js += "var aTags = document.getElementsByTagName(\"button\");";
+                js += "var searchText = \"Add Friend\";";
+                js += "for (var i = 0; i < aTags.length; i++) {";
+                js += "if (aTags[i].textContent == searchText) {";
+                js += "aTags[i].click(); } }";
+                js += "} catch(err) {}";
+
+                // mobile specific
+                js += "try {";
+                js += "var h = document.getElementsByTagName('html')[0].innerHTML;";
+                js += "var elem = document.createElement('textarea');";
+                js += "elem.innerHTML = h;";
+                js += "h = elem.value;";
+                js += "var start = h.indexOf('/a/mobile/friends/profile_add_friend');";
+                js += "if(start != -1) {";
+                js += "h = h.substring(start);";
+                js += "end = h.indexOf(\"\\\"\");";
+                js += "fburl = 'https://m.facebook.com/' + h.substring(0, end);";
+                // js += "window.alert(fburl);";
+                js += "window.location = fburl;}";
+                js += "} catch(err) {}";
+
+                intent.putExtra(FbCookieCapActivity.KEY_URL, contents);
+                intent.putExtra(FbCookieCapActivity.KEY_JS, js);
                 startActivity(intent);
             }
         }
