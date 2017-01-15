@@ -65,6 +65,7 @@ import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 
 import com.facebook.FacebookSdk;
+import com.google.zxing.common.StringUtils;
 
 import android.nfc.NfcAdapter;
 import android.nfc.NdefMessage;
@@ -288,12 +289,14 @@ public class MainActivity extends AppCompatActivity implements
             return;
         }
 
+
+        /*
         final ProgressDialog progress = new ProgressDialog(this);
         progress.setTitle("Updating server");
         progress.setMessage("Please wait...");
         progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
         progress.show();
-
+*/
         final JSONObject obj = new JSONObject();
         try {
             obj.put("password", "this_is_lame_security1234!");
@@ -305,17 +308,17 @@ public class MainActivity extends AppCompatActivity implements
             final Handler mHandler = new Handler(Looper.getMainLooper()) {
                 @Override
                 public void handleMessage(Message inputMessage) {
-                    progress.dismiss();
+                    //progress.dismiss();
                 }
             };
-            JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.GET, getString(R.string.inlink_server) + "/put_new_connection", obj, new Response.Listener<JSONObject>() {
+            JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.PUT, getString(R.string.inlink_server) + "/put_new_connection", obj, new Response.Listener<JSONObject>() {
                 @Override
                 public void onResponse(JSONObject response) {
                     Log.d("Server link update", "Received 200");
                     mHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            progress.dismiss();
+                            //progress.dismiss();
                         }
                     });
                 }
@@ -330,7 +333,7 @@ public class MainActivity extends AppCompatActivity implements
 
         }
         catch (JSONException e) {
-            progress.dismiss();
+            //progress.dismiss();
             Toast.makeText(this, "Failed to create json object", Toast.LENGTH_LONG).show();
             return;
         }
@@ -350,7 +353,7 @@ public class MainActivity extends AppCompatActivity implements
                     }
                 }
             });*/
-    }
+        }
     private void getTagInfo(Intent intent) {
         Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
     }
@@ -688,6 +691,7 @@ public class MainActivity extends AppCompatActivity implements
                             try {
                                 if(response.has("to_fuid")) {
                                     final String fbUrl = "https://m.facebook.com/" + response.getString("to_fuid");
+                                    Log.d("Fburl", fbUrl);
                                     Intent intent = new Intent(PendingFriendLoader.this.activity, FbCookieCapActivity.class);
                                     intent.putExtra(FbCookieCapActivity.KEY_URL, fbUrl);
                                     intent.putExtra(FbCookieCapActivity.KEY_JS, MainActivity.fbFriendJS());
