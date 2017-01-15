@@ -97,14 +97,19 @@ public class LISessionManager {
      *
      * Either this method or {@link com.linkedin.platform.LISessionManager#init(AccessToken)} must be
      * called before the application can make API calls or DeepLink calls.
-     *  @param activity               activity to return to after initialization
+     *
+     * @param activity               activity to return to after initialization
      * @param scope                  The type of LinkedIn data that for which access is requested.
-     *                               see {@link Scope}
+     *                               see {@link com.linkedin.platform.utils.Scope}
      * @param callback               listener to execute on completion
+     * @param showGoToAppStoreDialog determines behaviour when the LinkedIn app is not installed
+     *                               if true, a dialog is shown which prompts the user to install
+     *                               the LinkedIn app via the app store.  If false, the user is
+     *                               taken directly to the app store.
      *
      */
     public void init(Activity activity,
-                     Scope scope, AuthListener callback) {
+                     Scope scope, AuthListener callback, boolean showGoToAppStoreDialog) {
         //check if LI
         if (!LIAppVersion.isLIAppCurrent(ctx)) {
             AppStore.goAppStore(activity, showGoToAppStoreDialog);

@@ -39,6 +39,17 @@ import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 
 import com.facebook.FacebookSdk;
+import com.linkedin.platform.APIHelper;
+import com.linkedin.platform.LISessionManager;
+import com.linkedin.platform.errors.LIApiError;
+import com.linkedin.platform.errors.LIAuthError;
+import com.linkedin.platform.listeners.ApiListener;
+import com.linkedin.platform.listeners.ApiResponse;
+import com.linkedin.platform.listeners.AuthListener;
+import com.linkedin.platform.utils.Scope;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.Arrays;
 
@@ -53,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
     private AccessToken accessToken;
     private String userId;
     private String usr;
+    private TextView textView;
     private ZXingScannerView sView;
 
     @Override
@@ -65,6 +77,27 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         //fbLogin here.
         qrCode = (ImageView) findViewById(R.id.qr_code);
+
+        login_linkedin();
+
+    }
+    private static Scope buildScope() {
+        return Scope.build(Scope.R_BASICPROFILE, Scope.R_EMAILADDRESS);
+    }
+
+    public void login_linkedin() {
+        LISessionManager.getInstance(getApplicationContext()).init(this,
+                buildScope(), new AuthListener() {
+                    @Override
+                    public void onAuthSuccess() {
+
+                    }
+
+                    @Override
+                    public void onAuthError(LIAuthError error) {
+
+                    }
+                }, true);
     }
 
     public void fbLogin(View v) {
@@ -132,6 +165,32 @@ public class MainActivity extends AppCompatActivity {
         if(callbackManager != null) {
             callbackManager.onActivityResult(requestCode, resultCode, data);
         }
+       LISessionManager.getInstance(getApplicationContext()).onActivityResult(this, requestCode, resultCode, data);
+        //Intent intent = new Intent(MainActivity.this,UserProfile.class);
+        //startActivity(intent);
+        String url = "https://api.linkedin.com/v1/people/~";
+
+        APIHelper apiHelper = APIHelper.getInstance(getApplicationContext());
+        apiHelper.getRequest(this, url, new ApiListener() {
+            @Override
+            public void onApiSuccess(ApiResponse apiResponse) {
+                try {
+                JSONObject jsonObject = apiResponse.getResponseDataAsJson();
+                JSONObject jsonObject1 = jsonObject.getJSONObject("siteStandardProfileRequest");
+                String json = jsonObject1.getString("url");
+                    textView = (TextView) findViewById(R.id.scan_text);
+                    textView.setText(json);
+                }catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onApiError(LIApiError liApiError) {
+                // Error making GET request!
+            }
+        });
+
         if (requestCode == 0) {
             if (resultCode == RESULT_OK) {
                 String contents = data.getStringExtra("SCAN_RESULT");
@@ -141,7 +200,6 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         }
-
     }
 
     class QRTask extends AsyncTask<String, String, Bitmap> {
