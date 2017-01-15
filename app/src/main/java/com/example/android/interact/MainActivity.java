@@ -43,9 +43,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Request;
+import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.facebook.AccessToken;
 import com.facebook.AccessTokenTracker;
 import com.facebook.CallbackManager;
@@ -664,6 +666,8 @@ public class MainActivity extends AppCompatActivity implements
                             //}
                         }
                     });
+                    RequestQueue queue = Volley.newRequestQueue(PendingFriendLoader.this.activity);
+                    queue.add(jsObjRequest);
                 }
             };
             handler.postDelayed(r, 7777);
