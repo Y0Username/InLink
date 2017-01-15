@@ -302,12 +302,39 @@ public class MainActivity extends AppCompatActivity implements
             obj.put("to_name", name);
             obj.put("from_fuid", fromUid);
             // obj.put("to_fuid", fbuid);
-            Handler mHandler = new Handler(Looper.getMainLooper()) {
+            final Handler mHandler = new Handler(Looper.getMainLooper()) {
                 @Override
                 public void handleMessage(Message inputMessage) {
                     progress.dismiss();
                 }
             };
+            JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.GET, getString(R.string.inlink_server) + "/put_new_connection", obj, new Response.Listener<JSONObject>() {
+                @Override
+                public void onResponse(JSONObject response) {
+                    Log.d("Server link update", "Received 200");
+                    mHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            progress.dismiss();
+                        }
+                    });
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Log.d("Server link update", "Failed to update server");
+                }
+            });
+            RequestQueue q = Volley.newRequestQueue(MainActivity.this);
+            q.add(jsObjRequest);
+
+        }
+        catch (JSONException e) {
+            progress.dismiss();
+            Toast.makeText(this, "Failed to create json object", Toast.LENGTH_LONG).show();
+            return;
+        }
+            /*
             Thread t = new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -322,29 +349,7 @@ public class MainActivity extends AppCompatActivity implements
                         progress.dismiss();
                     }
                 }
-            });
-        } catch (JSONException e) {
-            progress.dismiss();
-            Toast.makeText(this, "Failed to create json object", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        /*
-        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.GET, getString(R.string.inlink_server) + "/put_new_connection", obj, new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
-                Log.d("Server link update", "Received 200");
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.d("Server link update", "Failed to update server");
-            }
-        });
-        RequestQueue queue = Volley.newRequestQueue(this);
-        queue.add(jsObjRequest);*/
-
-        progress.dismiss();
+            });*/
     }
     private void getTagInfo(Intent intent) {
         Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
