@@ -472,7 +472,7 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void run() {
                 PendingFriendLoader l = new PendingFriendLoader(MainActivity.this);
-                l.load();
+                l.load(0);
                 Toast.makeText(getApplicationContext(),
                         eventString,
                         Toast.LENGTH_LONG).show();
