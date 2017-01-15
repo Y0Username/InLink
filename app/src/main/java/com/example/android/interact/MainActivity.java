@@ -35,6 +35,7 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -99,6 +100,7 @@ public class MainActivity extends AppCompatActivity implements
     private String name;
     private String phone;
     private ProgressBar pb;
+    private CheckBox tempBox;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -115,6 +117,8 @@ public class MainActivity extends AppCompatActivity implements
         setContentView(R.layout.activity_main);
         //fbLogin here.
         qrCode = (ImageView) findViewById(R.id.qr_code);
+
+        tempBox = (CheckBox) findViewById(R.id.temp_box);
 
         Intent intent = getIntent();
         String action = intent.getAction();
@@ -137,6 +141,16 @@ public class MainActivity extends AppCompatActivity implements
         if (str != null && !str.equals("https://www.facebook.com/")) {
             Log.v("hryuygw:", str);
             new QRTask().execute(str);
+        }
+    }
+
+    public void checkButton(View v) {
+        boolean check = ((CheckBox) v).isChecked();
+        if(check) {
+
+        }
+        else {
+            
         }
     }
 
