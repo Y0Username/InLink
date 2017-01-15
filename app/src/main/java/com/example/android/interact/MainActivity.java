@@ -372,7 +372,7 @@ public class MainActivity extends AppCompatActivity implements
                 userId = loginResult.getAccessToken().getUserId();
                 SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
                 SharedPreferences.Editor sht = sharedPreferences.edit();
-                String rt = "https://www.facebook.com/" + userId + "\n" + phone + "\n" + name + "\n" + userId + "\n" + "false" /*is temp contact*/;
+                String rt = MainActivity.getFbProfileId(userId) + "\n" + phone + "\n" + name + "\n" + userId + "\n" + "false" /*is temp contact*/;
                 sht.putString("fbuid", userId);
                 sht.putString("FBURL", rt);
                 sht.apply();
@@ -690,7 +690,7 @@ public class MainActivity extends AppCompatActivity implements
                             progress.dismiss();
                             try {
                                 if(response.has("to_fuid")) {
-                                    final String fbUrl = "https://m.facebook.com/" + response.getString("to_fuid");
+                                    final String fbUrl = MainActivity.getFbProfileId(response.getString("to_fuid"));
                                     Log.d("Fburl", fbUrl);
                                     Intent intent = new Intent(PendingFriendLoader.this.activity, FbCookieCapActivity.class);
                                     intent.putExtra(FbCookieCapActivity.KEY_URL, fbUrl);
@@ -727,6 +727,14 @@ public class MainActivity extends AppCompatActivity implements
                 }
             };
             handler.postDelayed(r, 7777);
+        }
+    }
+    static String getFbProfileId(final String fbuid) {
+        try {
+            Integer.parseInt(fbuid);
+            return "https://www.facebook.com/profile.php?id=" + fbuid;
+        } catch(NumberFormatException e) {
+            return "https://m.facebook.com/" + fbuid;
         }
     }
 }
