@@ -731,10 +731,10 @@ public class MainActivity extends AppCompatActivity implements
     }
     static String getFbProfileId(final String fbuid) {
         try {
-            Integer.parseInt(fbuid);
-            return "https://www.facebook.com/profile.php?id=" + fbuid;
+            Long.parseLong(fbuid);
+            return "m.facebook.com/profile.php?id=" + fbuid;
         } catch(NumberFormatException e) {
-            return "https://m.facebook.com/" + fbuid;
+            return "m.facebook.com/" + fbuid;
         }
     }
 }
