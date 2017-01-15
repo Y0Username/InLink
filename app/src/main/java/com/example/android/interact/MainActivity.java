@@ -1,13 +1,27 @@
 package com.example.android.interact;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
+import android.content.ContentProviderOperation;
+import android.content.ContentProviderResult;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.OperationApplicationException;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Picture;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
+import android.os.RemoteException;
+import android.preference.Preference;
+import android.preference.PreferenceManager;
+import android.provider.ContactsContract;
+import android.support.annotation.NonNull;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.ButtonBarLayout;
@@ -51,9 +65,10 @@ import com.linkedin.platform.utils.Scope;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-
 import me.dm7.barcodescanner.zxing.ZXingScannerView;
+import android.provider.ContactsContract;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -66,6 +81,7 @@ public class MainActivity extends AppCompatActivity {
     private String usr;
     private TextView textView;
     private ZXingScannerView sView;
+    private String phone;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,9 +93,85 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         //fbLogin here.
         qrCode = (ImageView) findViewById(R.id.qr_code);
+        SharedPreferences sh = PreferenceManager.getDefaultSharedPreferences(this);
+        phone = sh.getString("phone","6199292596");
+    }
 
+    public void contact(View v) {
+        // Check the SDK version and whether the permission is already granted or not.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.READ_CONTACTS}, 100);
+            //After this point you wait for callback in onRequestPermissionsResult(int, String[], int[]) overriden method
+        } else {
+            // Android version is lesser than 6.0 or the permission is already granted.
+            ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+            int rawContactInsertIndex = ops.size();
+
+            ops.add(ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
+                    .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, null)
+                    .withValue(ContactsContract.RawContacts.ACCOUNT_NAME,null )
+                    .build());
+            ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+                    .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, rawContactInsertIndex)
+                    .withValue(ContactsContract.Contacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
+                    .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, "9545645888")
+                    .build());
+            ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+                    .withValueBackReference(ContactsContract.Contacts.Data.RAW_CONTACT_ID, rawContactInsertIndex)
+                    .withValue(ContactsContract.Contacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
+                    .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, "Mike Sullivan")
+                    .build());
+            try {
+                ContentProviderResult[] res = getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+            }
+            catch (RemoteException e) {
+                e.printStackTrace();;
+            }
+            catch (OperationApplicationException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == 100) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission is granted
+                ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+                int rawContactInsertIndex = ops.size();
+
+                ops.add(ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
+                        .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, null)
+                        .withValue(ContactsContract.RawContacts.ACCOUNT_NAME,null )
+                        .build());
+                ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+                        .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, rawContactInsertIndex)
+                        .withValue(ContactsContract.Contacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
+                        .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, "9545645888")
+                        .build());
+                ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+                        .withValueBackReference(ContactsContract.Contacts.Data.RAW_CONTACT_ID, rawContactInsertIndex)
+                        .withValue(ContactsContract.Contacts.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
+                        .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, "Mike Sullivan")
+                        .build());
+                try {
+                    ContentProviderResult[] res = getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+                }
+                catch (RemoteException e) {
+                    e.printStackTrace();;
+                }
+                catch (OperationApplicationException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                Toast.makeText(this, "Until you grant the permission, we canot display the names", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    public void linkedHandle(View v) {
         login_linkedin();
-
     }
     private static Scope buildScope() {
         return Scope.build(Scope.R_BASICPROFILE, Scope.R_EMAILADDRESS);
@@ -111,7 +203,8 @@ public class MainActivity extends AppCompatActivity {
             public void onSuccess(LoginResult loginResult) {
                 Log.d("FACEBOOK MANAGER", "SUCCESS");
                 userId = loginResult.getAccessToken().getUserId();
-                new QRTask().execute("https://www.facebook.com/" + userId);
+                String rt = "https://www.facebook.com/" + userId + "$" + phone;
+                new QRTask().execute(rt);
             }
 
             @Override
@@ -166,9 +259,7 @@ public class MainActivity extends AppCompatActivity {
             callbackManager.onActivityResult(requestCode, resultCode, data);
         }
        LISessionManager.getInstance(getApplicationContext()).onActivityResult(this, requestCode, resultCode, data);
-        //Intent intent = new Intent(MainActivity.this,UserProfile.class);
-        //startActivity(intent);
-        String url = "https://api.linkedin.com/v1/people/~";
+        final String url = "https://api.linkedin.com/v1/people/~?format=json";
 
         APIHelper apiHelper = APIHelper.getInstance(getApplicationContext());
         apiHelper.getRequest(this, url, new ApiListener() {
@@ -177,9 +268,10 @@ public class MainActivity extends AppCompatActivity {
                 try {
                 JSONObject jsonObject = apiResponse.getResponseDataAsJson();
                 JSONObject jsonObject1 = jsonObject.getJSONObject("siteStandardProfileRequest");
-                String json = jsonObject1.getString("url");
+                String json = jsonObject1.getString("id");
+                    String urljson = "http://www.linkedin.com/profile/view?id=" + json;
                     textView = (TextView) findViewById(R.id.scan_text);
-                    textView.setText(json);
+                    textView.setText(urljson);
                 }catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -188,6 +280,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onApiError(LIApiError liApiError) {
                 // Error making GET request!
+                Log.v("aedwe", "ewe");
             }
         });
 
@@ -195,8 +288,9 @@ public class MainActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
                 String contents = data.getStringExtra("SCAN_RESULT");
                 String format = data.getStringExtra("SCAN_RESULT_FORMAT");
+                String[] arrt = contents.split("$");
                 Intent intent = new Intent(MainActivity.this, FbCookieCapActivity.class);
-                intent.putExtra("URL", contents);
+                intent.putExtra("URL", arrt[0]);
                 startActivity(intent);
             }
         }

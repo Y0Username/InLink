@@ -8,6 +8,12 @@
     android:orientation="vertical"
     tools:context="com.example.android.interact.MainActivity">
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/scan_text"
+        android:layout_gravity="center_horizontal"/>
+
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -36,14 +42,22 @@
         android:layout_height="wrap_content"
         android:id="@+id/buttonOne"
         android:layout_gravity="center_horizontal"
-        android:text="generate qr code"
+        android:text="generate qr code fb"
         android:onClick="fbLogin"/>
-
-
-    <TextView
+    <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/scan_text"
-        android:layout_gravity="center_horizontal"/>
+        android:id="@+id/buttonThree"
+        android:layout_gravity="center_horizontal"
+        android:text="generate qr code"
+        android:onClick="linkedHandle"/>
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/buttonFour"
+        android:layout_gravity="center_horizontal"
+        android:text="add contact"
+        android:onClick="contact"/>
+
 
 </LinearLayout>
