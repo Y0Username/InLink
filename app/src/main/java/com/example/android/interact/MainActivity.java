@@ -42,6 +42,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -79,6 +80,8 @@ import java.util.ArrayList;
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import me.dm7.barcodescanner.zxing.ZXingScannerView;
 
@@ -546,8 +549,8 @@ public class MainActivity extends AppCompatActivity implements
         JSONObject obj = new JSONObject();
         try {
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-            String phone = sharedPreferences.getString("name", "");
-            String fbuid = sharedPreferences.getString("fbuid", "");
+            final String phone = sharedPreferences.getString("name", "");
+            final String fbuid = sharedPreferences.getString("fbuid", "");
             if (phone.equals("") || fbuid.equals("")) {
                 Log.e("Pending friend loader", "Couldn't load user name, phone or fb uid. Fuck.");
                 return;
@@ -619,16 +622,15 @@ public class MainActivity extends AppCompatActivity implements
             Runnable r=new Runnable() {
                 public void run() {
                     JSONObject obj = new JSONObject();
+                    SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+                    final String fbuid = sharedPreferences.getString("fbuid", "");
+                    //String name = sharedPreferences.getString("phone", "");
+                    // String phone = sharedPreferences.getString("name", "");
+                    if (fbuid.equals("")) {
+                        Log.e("Pending friend loader", "Couldn't load user fb uid. Fuck.");
+                        return;
+                    }
                     try {
-                        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-                        //String name = sharedPreferences.getString("phone", "");
-                        // String phone = sharedPreferences.getString("name", "");
-                        String fbuid = sharedPreferences.getString("fbuid", "");
-                        if (fbuid.equals("")) {
-                            Log.e("Pending friend loader", "Couldn't load user fb uid. Fuck.");
-                            return;
-                        }
-
                         obj.put("password", "this_is_lame_security1234!");
                         obj.put("from_fuid", fbuid);
                         // obj.put("to_fuid", fbuid);
@@ -638,6 +640,8 @@ public class MainActivity extends AppCompatActivity implements
                         return;
                     }
                     JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.GET, getString(R.string.inlink_server) + "/get_unclaimed_friends", obj, new Response.Listener<JSONObject>() {
+
+
                         @Override
                         public void onResponse(JSONObject response) {
                             progress.dismiss();
@@ -665,7 +669,15 @@ public class MainActivity extends AppCompatActivity implements
                             //    Toast.makeText(PendingFriendLoader.this.activity, "Failed to get conatct", Toast.LENGTH_LONG);
                             //}
                         }
-                    });
+                    }) {
+                        @Override
+                        public Map<String, String> getParams() throws AuthFailureError {
+                            Map<String, String> m = new HashMap<String, String>();
+                            m.put("password", "this_is_lame_security1234!");
+                            m.put("from_fuid", fbuid);
+                            return m;
+                        }
+                    };
                     RequestQueue queue = Volley.newRequestQueue(PendingFriendLoader.this.activity);
                     queue.add(jsObjRequest);
                 }
