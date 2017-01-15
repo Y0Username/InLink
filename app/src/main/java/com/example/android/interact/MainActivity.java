@@ -610,13 +610,12 @@ public class MainActivity extends AppCompatActivity implements
             progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
             progress.show();
             String friendId = null;
-            /*
             Handler mHandler = new Handler(Looper.getMainLooper()) {
                 @Override
                 public void handleMessage(Message inputMessage) {
                     progress.dismiss();
                 }
-            };*/
+            };
 
             Handler handler=new Handler();
             Runnable r=new Runnable() {
@@ -639,9 +638,15 @@ public class MainActivity extends AppCompatActivity implements
                         Toast.makeText(activity, "Failed to create json object", Toast.LENGTH_LONG).show();
                         return;
                     }
-                    JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.GET, getString(R.string.inlink_server) + "/get_unclaimed_friends", obj, new Response.Listener<JSONObject>() {
 
-
+                    /*Thread t = new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            URL url = new URL("http://localhost:8080/api" + "?" + query);
+                            URLConnection connection = url.openConnection();
+                        }
+                    });*/
+                    JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.GET, getString(R.string.inlink_server) + "/get_unclaimed_friends?from_fuid="+fbuid, obj, new Response.Listener<JSONObject>() {
                         @Override
                         public void onResponse(JSONObject response) {
                             progress.dismiss();
