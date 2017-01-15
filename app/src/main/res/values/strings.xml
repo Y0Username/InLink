@@ -5,4 +5,6 @@
     <string name="facebook_app_id">1179761925478164</string>
     <string name="fb_login_protocol_scheme">fb1179761925478164</string>
     <string name="title_activity_fb_cookie_cap">FbCookieCapActivity</string>
+    <string name="package_str">com.example.android.interact</string>
+    <string name="nfc_mime">application/vnd.com.example.android.interact.beam</string>
 </resources>

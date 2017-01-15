@@ -87,6 +87,10 @@ public class MainActivity extends AppCompatActivity implements
         textInfo = (TextView)findViewById(R.id.info);
         textOut = (EditText)findViewById(R.id.textout);
 
+        Intent intent = getIntent();
+        String action = intent.getAction();
+        String type = intent.getType();
+
         nfcAdapter = NfcAdapter.getDefaultAdapter(this);
         if(nfcAdapter==null){
             Toast.makeText(MainActivity.this,
@@ -94,7 +98,7 @@ public class MainActivity extends AppCompatActivity implements
                     Toast.LENGTH_LONG).show();
         }else{
             Toast.makeText(MainActivity.this,
-                    "Set Callback(s)",
+                    "NFC loaded",
                     Toast.LENGTH_LONG).show();
             nfcAdapter.setNdefPushMessageCallback(this, this);
             nfcAdapter.setOnNdefPushCompleteCallback(this, this);
@@ -106,15 +110,26 @@ public class MainActivity extends AppCompatActivity implements
         super.onResume();
         Intent intent = getIntent();
         String action = intent.getAction();
-        if(action.equals(NfcAdapter.ACTION_NDEF_DISCOVERED)){
-            Parcelable[] parcelables =
-                    intent.getParcelableArrayExtra(
-                            NfcAdapter.EXTRA_NDEF_MESSAGES);
-            NdefMessage inNdefMessage = (NdefMessage)parcelables[0];
-            NdefRecord[] inNdefRecords = inNdefMessage.getRecords();
-            NdefRecord NdefRecord_0 = inNdefRecords[0];
-            String inMsg = new String(NdefRecord_0.getPayload());
-            textInfo.setText(inMsg);
+        String type = intent.getType();
+
+        mPendingIntent = PendingIntent.getActivity(this, 0, new Intent(
+                        this, this.getClass())
+                        .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
+                0);
+
+        // See below
+        if(nfcAdapter != null)
+            nfcAdapter.enableForegroundDispatch(this, mPendingIntent, null, null);
+
+        // Check to see that the Activity started due to an Android Beam
+        if (NfcAdapter.ACTION_NDEF_DISCOVERED.equals(action)) {
+            Log.d("In beam", "Extracting message");
+            Parcelable[] rawMsgs = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES);
+            // only one message sent during the beam
+            NdefMessage msg = (NdefMessage) rawMsgs[0];
+            // record 0 contains the MIME type, record 1 is the AAR, if present
+            Log.d("In beam", new String(msg.getRecords()[0].getPayload()));
+            Toast.makeText(this, new String(msg.getRecords()[0].getPayload()), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -125,8 +140,6 @@ public class MainActivity extends AppCompatActivity implements
 
     private void getTagInfo(Intent intent) {
         Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
-
-
     }
 
 
@@ -241,17 +254,20 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public NdefMessage createNdefMessage(NfcEvent event) {
 
-        String stringOut = textOut.getText().toString();
-        byte[] bytesOut = stringOut.getBytes();
-
-        NdefRecord ndefRecordOut = new NdefRecord(
-                NdefRecord.TNF_MIME_MEDIA,
-                "text/plain".getBytes(),
-                new byte[] {},
-                bytesOut);
-
-        NdefMessage ndefMessageout = new NdefMessage(ndefRecordOut);
-        return ndefMessageout;
+        NdefMessage msg = new NdefMessage(
+                new NdefRecord[] { NdefRecord.createMime(
+                        getString(R.string.nfc_mime), "TestMessage".getBytes())
+                        /**
+                         * The Android Application Record (AAR) is commented out. When a device
+                         * receives a push with an AAR in it, the application specified in the AAR
+                         * is guaranteed to run. The AAR overrides the tag dispatch system.
+                         * You can add it back in to guarantee that this
+                         * activity starts when receiving a beamed message. For now, this code
+                         * uses the tag dispatch system.
+                        */
+                        //, NdefRecord.createApplicationRecord(getString(R.string.package_str))
+                });
+        return msg;
     }
 
     @Override
