@@ -203,19 +203,23 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     protected void onResume() {
         super.onResume();
-        Intent intent = getIntent();
-        String action = intent.getAction();
-        String type = intent.getType();
 
-        mPendingIntent = PendingIntent.getActivity(this, 0, new Intent(
-                        this, this.getClass())
-                        .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
-                0);
+        mPendingIntent = PendingIntent.getActivity(this, 0, new Intent(this,
+                        getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP
+                        | Intent.FLAG_ACTIVITY_CLEAR_TOP), 0);
 
         // See below
         if (nfcAdapter != null)
             nfcAdapter.enableForegroundDispatch(this, mPendingIntent, null, null);
 
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        //Intent intent = getIntent();
+        String action = intent.getAction();
+        String type = intent.getType();
         // Check to see that the Activity started due to an Android Beam
         if (NfcAdapter.ACTION_NDEF_DISCOVERED.equals(action)) {
             Log.d("In beam", "Extracting message");
@@ -223,28 +227,20 @@ public class MainActivity extends AppCompatActivity implements
             // only one message sent during the beam
             NdefMessage msg = (NdefMessage) rawMsgs[0];
             // record 0 contains the MIME type, record 1 is the AAR, if present
-            //Log.d("In beamqew", new String(msg.getRecords()[0].getPayload()));
+            Log.d("In beamqew", new String(msg.getRecords()[0].getPayload()));
             String[] ab = new String(msg.getRecords()[0].getPayload()).split("\n");
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
             SharedPreferences.Editor sh = sharedPreferences.edit();
             sh.putString("othername", ab[2]);
             sh.putString("otherphone", ab[1]);
             sh.apply();
-            contact(ab[2], ab[1]);
+            contact(ab[1], ab[2]);
             Intent intent1 = new Intent(MainActivity.this, FbCookieCapActivity.class);
             intent1.putExtra(FbCookieCapActivity.KEY_URL, ab[0]);
             intent1.putExtra(FbCookieCapActivity.KEY_JS, jString());
             startActivity(intent1);
-
-
         }
     }
-
-    @Override
-    protected void onNewIntent(Intent intent) {
-        setIntent(intent);
-    }
-
     private void getTagInfo(Intent intent) {
         Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
     }
