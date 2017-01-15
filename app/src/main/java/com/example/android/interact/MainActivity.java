@@ -598,6 +598,9 @@ public class MainActivity extends AppCompatActivity implements
                 Log.e("Get temp number", "An error occurred");
             }
         });
+        RequestQueue queue = Volley.newRequestQueue(this);
+        queue.add(jsObjRequest);
+
         progress.dismiss();
     }
 
