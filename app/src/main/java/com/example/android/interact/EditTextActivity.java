@@ -15,18 +15,22 @@ import android.widget.EditText;
 
 public class EditTextActivity extends AppCompatActivity {
     private EditText editText;
+    private EditText nameText;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.my_text);
         editText = (EditText) findViewById(R.id.prg_text);
+        nameText = (EditText) findViewById(R.id.grp_text);
     }
 
     public void theButton(View v) {
         String num = editText.getText().toString();
+        String phon = nameText.getText().toString();
         SharedPreferences sh = PreferenceManager.getDefaultSharedPreferences(this);
         SharedPreferences.Editor shty = sh.edit();
         shty.putString("phone", num);
+        shty.putString("name", phon);
         shty.apply();
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
