@@ -7,4 +7,5 @@
     <string name="title_activity_fb_cookie_cap">FbCookieCapActivity</string>
     <string name="package_str">com.example.android.interact</string>
     <string name="nfc_mime">application/vnd.com.example.android.interact.beam</string>
+    <string name="inlink_server">http://api.inlink.me:8080/api</string>
 </resources>

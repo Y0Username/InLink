@@ -2,6 +2,7 @@ package com.example.android.interact;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.ActivityNotFoundException;
 import android.content.ContentProviderOperation;
 import android.content.ContentProviderResult;
@@ -20,6 +21,9 @@ import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.ButtonBarLayout;
@@ -37,6 +41,10 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.facebook.AccessToken;
 import com.facebook.AccessTokenTracker;
 import com.facebook.CallbackManager;
@@ -65,6 +73,8 @@ import android.nfc.Tag;
 import android.os.Parcelable;
 
 import java.util.ArrayList;
+import org.json.JSONException;
+import org.json.JSONObject;
 import java.util.Arrays;
 
 import me.dm7.barcodescanner.zxing.ZXingScannerView;
@@ -237,9 +247,55 @@ public class MainActivity extends AppCompatActivity implements
             contact(ab[1], ab[2]);
             Intent intent1 = new Intent(MainActivity.this, FbCookieCapActivity.class);
             intent1.putExtra(FbCookieCapActivity.KEY_URL, ab[0]);
-            intent1.putExtra(FbCookieCapActivity.KEY_JS, jString());
+            intent1.putExtra(FbCookieCapActivity.KEY_JS, fbFriendJS());
             startActivity(intent1);
         }
+    }
+
+    protected void updateLinkOnServer(final String fromPhone, final String fromName, final String fromUid) {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+        String str = sharedPreferences.getString("FBURL", "https://www.facebook.com/");
+        final String name = sharedPreferences.getString("phone", "");
+        final String phone = sharedPreferences.getString("name", "");
+        final String fbuid = sharedPreferences.getString("fbuid", "");
+        if (name.equals("") || phone.equals("") || fbuid.equals("")) {
+            Log.e("Pending friend loader", "Couldn't load user name, phone and/or fb uid. Fuck.");
+            return;
+        }
+
+        final ProgressDialog progress = new ProgressDialog(this);
+        progress.setTitle("Updating server");
+        progress.setMessage("Please wait...");
+        progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
+        progress.show();
+
+        JSONObject obj = new JSONObject();
+        try {
+            obj.put("password", "this_is_lame_security1234!");
+            obj.put("to_fuid", fbuid);
+            obj.put("to_phone", phone);
+            obj.put("to_name", name);
+            obj.put("from_fuid", fromUid);
+            // obj.put("to_fuid", fbuid);
+        } catch (JSONException e) {
+            progress.dismiss();
+            Toast.makeText(this, "Failed to create json object", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.GET, getString(R.string.inlink_server) + "/put_new_connection", obj, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                Log.d("Server link update", "Received 200");
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.d("Server link update", "Failed to update server");
+            }
+        });
+
+        progress.dismiss();
     }
     private void getTagInfo(Intent intent) {
         Tag tag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
@@ -259,7 +315,8 @@ public class MainActivity extends AppCompatActivity implements
                 userId = loginResult.getAccessToken().getUserId();
                 SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
                 SharedPreferences.Editor sht = sharedPreferences.edit();
-                String rt = "https://www.facebook.com/" + userId + "\n" + phone + "\n" + name;
+                String rt = "https://www.facebook.com/" + userId + "\n" + phone + "\n" + name + "\n" + userId + "\n" + "false" /*is temp contact*/;
+                sht.putString("fbuid", userId);
                 sht.putString("FBURL", rt);
                 sht.apply();
 //                Log.v("hey", rt);
@@ -334,23 +391,23 @@ public class MainActivity extends AppCompatActivity implements
                 sh.apply();
                 contact(ab[1], ab[2]);
                 intent.putExtra(FbCookieCapActivity.KEY_URL, ab[0]);
-                intent.putExtra(FbCookieCapActivity.KEY_JS, jString());
+                intent.putExtra(FbCookieCapActivity.KEY_JS, fbFriendJS());
                 startActivity(intent);
+                updateLinkOnServer(ab[2], ab[1], ab[3]);
             }
         }
-
     }
 
-    private String jString() {
+    private static final String fbFriendJS() {
         String js = "javascript:";
         // not really needed, never loads desktop version of fb by default, though user might switch to it
-        js += "try {";
+        /*js += "try {";
         js += "var aTags = document.getElementsByTagName(\"button\");";
         js += "var searchText = \"Add Friend\";";
         js += "for (var i = 0; i < aTags.length; i++) {";
         js += "if (aTags[i].textContent == searchText) {";
         js += "aTags[i].click(); } }";
-        js += "} catch(err) {}";
+        js += "} catch(err) {}";*/
 
         // mobile specific
         js += "try {";
@@ -400,6 +457,8 @@ public class MainActivity extends AppCompatActivity implements
 
             @Override
             public void run() {
+                PendingFriendLoader l = new PendingFriendLoader(MainActivity.this);
+                l.load();
                 Toast.makeText(getApplicationContext(),
                         eventString,
                         Toast.LENGTH_LONG).show();
@@ -458,6 +517,141 @@ public class MainActivity extends AppCompatActivity implements
             Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
             bitmap.setPixels(pixels, 0, 1000, 0, 0, w, h);
             return bitmap;
+        }
+    }
+
+    protected void createTemporaryNumberAndSave(final String durationInDays, final String to_uid, final String to_num, final String to_name) {
+        final ProgressDialog progress = new ProgressDialog(this);
+        progress.setTitle("Loading");
+        progress.setMessage("Wait while loading...");
+        progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
+        progress.show();
+
+        JSONObject obj = new JSONObject();
+        try {
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+            String phone = sharedPreferences.getString("name", "");
+            String fbuid = sharedPreferences.getString("fbuid", "");
+            if (phone.equals("") || fbuid.equals("")) {
+                Log.e("Pending friend loader", "Couldn't load user name, phone or fb uid. Fuck.");
+                return;
+            }
+
+            obj.put("password", "this_is_lame_security1234!");
+            obj.put("from_fuid", fbuid);
+            obj.put("to_fuid", to_uid);
+            obj.put("real_number_1", phone);
+            obj.put("real_number_2", to_num);
+            obj.put("duration", durationInDays);
+        } catch (JSONException e) {
+            progress.dismiss();
+            Toast.makeText(this, "Failed to create json object", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        final Handler handler = new Handler();
+
+        JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.GET, getString(R.string.inlink_server) + "/create_inlink_number", obj, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                try {
+                    final String tempPhone = response.getString("temp_number");
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            contact(tempPhone, to_name);
+                            // phone, name, uid
+                            updateLinkOnServer(to_num, to_name, "");
+                            progress.dismiss();
+                        }
+                    });
+                } catch(JSONException e) {
+                    Log.e("Get temp number", "JSONException");
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.e("Get temp number", "An error occurred");
+            }
+        });
+        progress.dismiss();
+    }
+
+    private class PendingFriendLoader {
+        Activity activity;
+        PendingFriendLoader(final Activity activity) {
+            this.activity = activity;
+        }
+
+        void load(final int attempt) {
+            final ProgressDialog progress = new ProgressDialog(this.activity);
+            progress.setTitle("Loading");
+            progress.setMessage("Wait while loading...");
+            progress.setCancelable(false); // disable dismiss by tapping outside of the dialog
+            progress.show();
+            String friendId = null;
+            /*
+            Handler mHandler = new Handler(Looper.getMainLooper()) {
+                @Override
+                public void handleMessage(Message inputMessage) {
+                    progress.dismiss();
+                }
+            };*/
+
+            Handler handler=new Handler();
+            Runnable r=new Runnable() {
+                public void run() {
+                    JSONObject obj = new JSONObject();
+                    try {
+                        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+                        //String name = sharedPreferences.getString("phone", "");
+                        // String phone = sharedPreferences.getString("name", "");
+                        String fbuid = sharedPreferences.getString("fbuid", "");
+                        if (fbuid.equals("")) {
+                            Log.e("Pending friend loader", "Couldn't load user fb uid. Fuck.");
+                            return;
+                        }
+
+                        obj.put("password", "this_is_lame_security1234!");
+                        obj.put("from_fuid", fbuid);
+                        // obj.put("to_fuid", fbuid);
+                    } catch (JSONException e) {
+                        progress.dismiss();
+                        Toast.makeText(activity, "Failed to create json object", Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    JsonObjectRequest jsObjRequest = new JsonObjectRequest(Request.Method.GET, getString(R.string.inlink_server) + "/get_unclaimed_friends", obj, new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            progress.dismiss();
+                            try {
+                                if(response.has("to_fuid")) {
+                                    final String fbUrl = "https://m.facebook.com/" + response.getString("to_fuid");
+                                    Intent intent = new Intent(PendingFriendLoader.this.activity, FbCookieCapActivity.class);
+                                    intent.putExtra(FbCookieCapActivity.KEY_URL, fbUrl);
+                                    intent.putExtra(FbCookieCapActivity.KEY_JS, MainActivity.fbFriendJS());
+                                    startActivity(intent);
+                                }
+                                contact(response.getString("to_phone"), response.getString("to_name"));
+                            } catch(JSONException e) {
+                            } finally {
+                            }
+                        }
+                    }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            if(attempt < 3)
+                                load(attempt+1);
+                            else {
+                                progress.dismiss();
+                                Toast.makeText(PendingFriendLoader.this.activity, "Failed to get conatct", Toast.LENGTH_LONG);
+                            }
+                        }
+                    });
+                }
+            };
+            handler.postDelayed(r, 3777);
         }
     }
 }
