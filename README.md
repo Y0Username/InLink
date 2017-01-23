@@ -1,6 +1,8 @@
 # InLink
 Connect everywhere, disconnect anytime.
 
+![alt tag](https://s28.postimg.org/nv7vuiza5/ic_mipmap.png)
+
 ## Inspiration
 1. Annoyed at having to exchange contact information with new people you meet?
 Just bump phones or scan a QR code to automatically exchange contact information and also connect on your preferred social networks!
