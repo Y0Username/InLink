@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+    <FrameLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_marginTop="80dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="64dp"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/buttonTwo"
+                    android:layout_width="0dp"
+                    android:layout_height="136dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_margin="8dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/qr_code"
+                    android:onClick="handleQR"
+                    android:padding="8dp"
+                    android:textColor="#FFF" />
+
+                <Button
+                    android:id="@+id/nfcLink"
+                    android:layout_width="0dp"
+                    android:layout_height="136dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_margin="8dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/nfc"
+                    android:onClick="nfcLink"
+                    android:padding="8dp"
+                    android:textColor="#FFF" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/buttonOne"
+                    android:layout_width="0dp"
+                    android:layout_height="136dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_margin="8dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/connect"
+                    android:onClick="fbLogin"
+                    android:padding="8dp"
+                    android:textColor="#FFF" />
+
+
+                <Button
+                    android:id="@+id/random"
+                    android:layout_width="0dp"
+                    android:layout_height="136dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_margin="8dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/chat_icon"
+                    android:padding="8dp"
+                    android:textColor="#FFF" />
+
+            </LinearLayout>
+        </LinearLayout>
+
+        <com.facebook.login.widget.LoginButton
+            android:id="@+id/login_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="30dp"
+            android:layout_marginTop="30dp"
+            android:visibility="invisible" />
+
+    </FrameLayout>
+

@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">InLink</string>
+
+    <!-- Facebook -->
+    <string name="facebook_app_id">1179761925478164</string>
+    <string name="fb_login_protocol_scheme">fb1179761925478164</string>
+    <string name="title_activity_fb_cookie_cap">FbCookieCapActivity</string>
+    <string name="package_str">com.example.android.interact</string>
+    <string name="nfc_mime">application/vnd.com.example.android.interact.beam</string>
+    <string name="open_drawer">Drawer Open</string>
+    <string name="close_drawer">Drawer Close</string>
+    <string name="title_activity_something">something</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_grtrt">grtrt</string>
+</resources>
