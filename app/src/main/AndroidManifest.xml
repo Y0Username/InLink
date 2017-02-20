@@ -106,5 +106,4 @@
                 android:value="com.example.kingpushpakraj.inlink.MainActivity" />
         </activity>
     </application>
-
 </manifest>
